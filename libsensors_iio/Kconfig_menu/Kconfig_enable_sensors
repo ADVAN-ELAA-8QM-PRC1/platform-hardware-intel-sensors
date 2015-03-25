@@ -1,0 +1,194 @@
+#
+# Enable/Disable sensors
+#
+
+menu "Enable/disable sensors"
+config ST_HAL_ACCEL_ENABLED
+	bool "Accelerometer sensor"
+	default y
+	help
+	  Enable support for Accelerometer sensor.
+
+config ST_HAL_MAGN_ENABLED
+	bool "Magnetometer sensor"
+	default y
+	help
+	  Enable support for Magnetometer sensor.
+
+if ST_HAL_MAGN_ENABLED && ST_HAL_HAS_MAGN_CALIB
+config ST_HAL_MAGN_CALIB_ENABLED
+	bool "Enable Magnetometer calibration Library"
+	depends on ST_HAL_ACCEL_ENABLED
+	default n
+	help
+	  Enable Magnetometer calibration library on Software by Application Processor Library.
+
+endif
+
+config ST_HAL_GYRO_ENABLED
+	bool "Gyroscope sensor"
+	default y
+	help
+	  Enable support for Gyroscope sensor.
+
+if ST_HAL_GYRO_ENABLED && ST_HAL_HAS_GYRO_GBIAS_ESTIMATION
+config ST_HAL_GYRO_GBIAS_ESTIMATION_ENABLED
+	bool "Enable Gyroscope gbias estimation Library"
+	depends on ST_HAL_ACCEL_ENABLED
+	default n
+	help
+	  Enable Gyroscope bias library estimation on Software by Application Processor Library.
+
+endif
+
+choice
+	prompt "Magnetometer Uncalibrated sensor"
+	default ST_HAL_MAGN_UNCALIB_DISABLED
+	help
+	  Enable support for Magnetometer Uncalibrated sensor.
+
+config ST_HAL_MAGN_UNCALIB_DISABLED
+	bool "Disabled"
+config ST_HAL_MAGN_UNCALIB_AP_ENABLED
+	depends on ST_HAL_MAGN_CALIB_ENABLED
+	bool "Software by Application Processor Library"
+endchoice
+
+choice
+	prompt "Gyroscope Uncalibrated sensor"
+	default ST_HAL_GYRO_UNCALIB_DISABLED
+	help
+	  Enable support for Gyroscope Uncalibrated sensor.
+
+config ST_HAL_GYRO_UNCALIB_DISABLED
+	bool "Disabled"
+config ST_HAL_GYRO_UNCALIB_AP_ENABLED
+	depends on ST_HAL_GYRO_GBIAS_ESTIMATION_ENABLED
+	bool "Software by Application Processor Library"
+endchoice
+
+config ST_HAL_SIGN_MOTION_ENABLED
+	bool "Significant Motion sensor"
+	default y
+	help
+	  Enable support for Significant Motion sensor.
+
+config ST_HAL_STEP_DETECTOR_ENABLED
+	bool "Step Detector sensor sensor"
+	default y
+	help
+	  Enable support for Step Detector sensor.
+
+config ST_HAL_STEP_COUNTER_ENABLED
+	bool "Step Counter sensor"
+	default y
+	help
+	  Enable support for Step Counter sensor.
+
+config ST_HAL_TILT_ENABLED
+	bool "Tilt sensor"
+	default y
+	help
+	  Enable support for Tilt sensor.
+
+config ST_HAL_PRESSURE_ENABLED
+	bool "Pressure sensor"
+	default y
+	help
+	  Enable support for Pressure sensor.
+
+choice
+	prompt "Orientation sensor"
+	default ST_HAL_ORIENTATION_DISABLED
+	help
+	  Enable support for Orientation sensor.
+
+config ST_HAL_ORIENTATION_DISABLED
+	bool "Disabled"
+config ST_HAL_ORIENTATION_AP_ENABLED
+	depends on ST_HAL_HAS_9AX_FUSION
+	depends on ST_HAL_ACCEL_ENABLED
+	depends on ST_HAL_MAGN_ENABLED
+	depends on ST_HAL_GYRO_ENABLED
+	bool "Software by Application Processor Library"
+endchoice
+
+choice
+	prompt "Gravity sensor"
+	default ST_HAL_GRAVITY_DISABLED
+	help
+	  Enable support for Gravity sensor.
+
+config ST_HAL_GRAVITY_DISABLED
+	bool "Disabled"
+config ST_HAL_GRAVITY_AP_ENABLED
+	depends on ST_HAL_HAS_9AX_FUSION
+	depends on ST_HAL_ACCEL_ENABLED
+	depends on ST_HAL_MAGN_ENABLED
+	depends on ST_HAL_GYRO_ENABLED
+	bool "Software by Application Processor Library"
+endchoice
+
+choice
+	prompt "Linear Acceleration sensor"
+	default ST_HAL_LINEAR_DISABLED
+	help
+	  Enable support for Linear Acceleration sensor.
+
+config ST_HAL_LINEAR_DISABLED
+	bool "Disabled"
+config ST_HAL_LINEAR_AP_ENABLED
+	depends on ST_HAL_HAS_9AX_FUSION
+	depends on ST_HAL_ACCEL_ENABLED
+	depends on ST_HAL_MAGN_ENABLED
+	depends on ST_HAL_GYRO_ENABLED
+	bool "Software by Application Processor Library"
+endchoice
+
+choice
+	prompt "Rotation Vector sensor"
+	default ST_HAL_ROT_VECTOR_DISABLED
+	help
+	  Enable support for Rotation Vector sensor.
+
+config ST_HAL_ROT_VECTOR_DISABLED
+	bool "Disabled"
+config ST_HAL_ROT_VECTOR_AP_ENABLED
+	depends on ST_HAL_HAS_9AX_FUSION
+	depends on ST_HAL_ACCEL_ENABLED
+	depends on ST_HAL_MAGN_ENABLED
+	depends on ST_HAL_GYRO_ENABLED
+	bool "Software by Application Processor Library"
+endchoice
+
+choice
+	prompt "Game Rotation Vector sensor"
+	default ST_HAL_GAME_ROT_VECTOR_DISABLED
+	help
+	  Enable support for Game Rotation Vector sensor.
+
+config ST_HAL_GAME_ROT_VECTOR_DISABLED
+	bool "Disabled"
+config ST_HAL_GAME_ROT_VECTOR_AP_ENABLED
+	depends on ST_HAL_HAS_6AX_FUSION
+	depends on ST_HAL_ACCEL_ENABLED
+	depends on ST_HAL_GYRO_ENABLED
+	bool "Software by Application Processor Library"
+endchoice
+
+choice
+	prompt "Geomagnetic Rotation Vector sensor"
+	default ST_HAL_GEOMAG_ROT_VECTOR_DISABLED
+	help
+	  Enable support for Geomagnetic Rotation Vector sensor.
+
+config ST_HAL_GEOMAG_ROT_VECTOR_DISABLED
+	bool "Disabled"
+config ST_HAL_GEOMAG_ROT_VECTOR_AP_ENABLED
+	depends on ST_HAL_HAS_GEOMAG_FUSION
+	depends on ST_HAL_ACCEL_ENABLED
+	depends on ST_HAL_MAGN_ENABLED
+	bool "Software by Application Processor Library"
+endchoice
+
+endmenu # Enable/disable sensors

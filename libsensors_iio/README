@@ -1,0 +1,29 @@
+	Android STMicroelectronics SensorHAL release 3.x
+
+These are the release notes for STMicroelectronics SensorHAL version 3.
+Read them carefully, as they tell you what this is all about, explain how
+to install the dynamic library, and what to do if something goes wrong.
+
+SOFTWARE REQUIREMENTS
+
+   Compiling and running the 3.x SensorHAL requires up-to-date versions of
+   various software packages.
+
+   Installing required packages:
+   $ sudo apt-get install build-essential libncurses5-dev
+
+LIBS
+   In order to run some sensors in the application processor side, libraries
+   are needed. Run auto-extract script packages in the root folder of the HAL.
+
+CONFIGURING the HAL:
+
+   "mm defconfig=y"	Generated default .config.
+
+   "mm menuconfig=y"	Text based color menus, radiolists & dialogs.
+
+   "mm clean=y"		Delete .config and configuration.h files.
+
+COMPILING the HAL
+
+   "mm"			Build the code

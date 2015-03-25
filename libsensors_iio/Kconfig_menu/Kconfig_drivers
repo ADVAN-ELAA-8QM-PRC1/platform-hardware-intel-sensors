@@ -1,0 +1,13 @@
+#
+# IIO drivers configuration
+#
+
+menu "IIO supported sensors"
+
+config ST_HAL_LSM6DS3_ENABLED
+	bool "LSM6DS3 sensor"
+	default y
+	help
+	  Enable support for LSM6DS3 sensor.
+
+endmenu # IIO drivers configuration

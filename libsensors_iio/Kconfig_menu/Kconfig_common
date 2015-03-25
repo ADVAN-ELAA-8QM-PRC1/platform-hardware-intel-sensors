@@ -1,0 +1,57 @@
+#
+# Common configuration
+#
+
+menu "Common configuration"
+config ST_HAL_MAX_SAMPLING_FREQUENCY
+	int "Max sampling frequency selectable [Hz]"
+	range 50 400
+	default 200
+	help
+	  Maximium value of sampling frequency that can be used in IIO driver.
+
+config ST_HAL_DEBUG_LEVEL
+	int "Debug level"
+	range 0 3
+	default 0
+	help
+	  Debugging information level. [0 - 3]
+	  0: error only;
+	  1: info messages;
+	  2: verbose;
+	  3: extra-verbose;
+
+if ST_HAL_ACCEL_ENABLED
+config ST_HAL_ACCEL_ROT_MATRIX
+	string "Accelerometer Rotation matrix"
+	default "1,0,0,0,1,0,0,0,1"
+
+config ST_HAL_ACCEL_RANGE
+	int "Accelerometer Max Range (m/s^2)"
+	default 17
+
+endif
+
+if ST_HAL_MAGN_ENABLED || ST_HAL_MAGN_UNCALIB_HW_ENABLED
+config ST_HAL_MAGN_ROT_MATRIX
+	string "Magnetometer Rotation matrix"
+	default "1,0,0,0,1,0,0,0,1"
+
+config ST_HAL_MAGN_RANGE
+	int "Magnetometer Max Range (uTesla)"
+	default 1000
+
+endif
+
+if ST_HAL_GYRO_ENABLED || ST_HAL_GYRO_UNCALIB_HW_ENABLED
+config ST_HAL_GYRO_ROT_MATRIX
+	string "Gyroscope Rotation matrix"
+	default "1,0,0,0,1,0,0,0,1"
+
+config ST_HAL_GYRO_RANGE
+	int "Gyroscope Max Range (rad/sec)"
+	default 35
+
+endif
+
+endmenu # Common configuration

@@ -25,10 +25,10 @@ include $(ST_HAL_ROOT_PATH)/../.config
 
 LOCAL_PRELINK_MODULE := false
 
-ifdef TARGET_BOARD_PLATFORM
-LOCAL_MODULE := sensors.$(TARGET_BOARD_PLATFORM)
+ifdef TARGET_DEVICE
+LOCAL_MODULE := libsensors_iio.$(TARGET_DEVICE)
 else
-LOCAL_MODULE := sensors.default
+LOCAL_MODULE := libsensors_iio.default
 endif
 
 LOCAL_MODULE_RELATIVE_PATH := hw

@@ -66,7 +66,6 @@ else
 export ST_HAL_HAS_COMPASS_LIB=n
 endif
 
-export KCONFIG_CONFIG=$(CURRENT_DIRECTORY)/.config
 export ST_HAL_PATH=$(CURRENT_DIRECTORY)
 
 all_modules:

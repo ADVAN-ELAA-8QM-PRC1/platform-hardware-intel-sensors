@@ -20,7 +20,8 @@ CONFIGURING the HAL:
 
    "mm defconfig=y"	Generated default .config.
 
-   "mm menuconfig=y"	Text based color menus, radiolists & dialogs.
+   "mm menuconfig=y  KCONFIG_CONFIG=hardware/intel/sensors/libsensors_iio/.config"
+			Text based color menus, radiolists & dialogs.
 
    "mm clean=y"		Delete .config and configuration.h files.
 

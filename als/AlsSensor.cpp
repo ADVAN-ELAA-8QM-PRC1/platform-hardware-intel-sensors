@@ -108,6 +108,11 @@ int LightSensor::enable(int32_t /* handle */, int en)
     return 0;
 }
 
+int LightSensor::isActivated(int /* handle */)
+{
+    return mEnabled;
+}
+
 #ifdef HAL_VERSION_GT_1_0
 int LightSensor::batch(int /* handle */, int /* flags */, int64_t period_ns, int64_t /* timeout */)
 {

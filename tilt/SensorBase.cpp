@@ -143,6 +143,12 @@ int SensorBase::enable(int32_t handle, int enabled)
 	return 0;
 }
 
+int SensorBase::isActivated(int /* handle */)
+{
+	FUNC_LOG;
+	return 0;
+}
+
 #ifdef HAL_VERSION_GT_1_0
 int SensorBase::batch(int handle, int flags, int64_t period_ns, int64_t timeout)
 {

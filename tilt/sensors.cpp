@@ -92,6 +92,7 @@ struct sensors_poll_context_t {
 	int setDelay(int handle, int64_t ns);
 #ifdef HAL_VERSION_GT_1_0
 	int batch(int handle, int flags, int64_t period_ns, int64_t timeout);
+	int flush(int handle);
 #endif
 	int pollEvents(sensors_event_t* data, int count);
 	bool getInitialized() { return mInitialized; };
@@ -102,13 +103,15 @@ private:
 	enum {
 		TILT = 0,
 		numSensorDrivers,       /* wake pipe goes here */
+		flushPipe,              /* flush pipe goes here */
 		numFds,
 	};
 
-	static const size_t wake = numFds - 1;
+	static const size_t wake = numFds - 2;
 	static const char WAKE_MESSAGE = 'W';
 	struct pollfd mPollFds[numFds];
 	int mWritePipeFd;
+	int mFlushWritePipeFd;
 	SensorBase* mSensors[numSensorDrivers];
 
 	int handleToDriver(int handle) const {
@@ -137,13 +140,28 @@ sensors_poll_context_t::sensors_poll_context_t()
 	int wakeFds[2];
 	int result = pipe(wakeFds);
 	ALOGE_IF(result<0, "error creating wake pipe (%s)", strerror(errno));
-	fcntl(wakeFds[0], F_SETFL, O_NONBLOCK);
-	fcntl(wakeFds[1], F_SETFL, O_NONBLOCK);
+	result = fcntl(wakeFds[0], F_SETFL, O_NONBLOCK);
+	ALOGE_IF(result<0, "error setting wakeFds[0] access mode (%s)", strerror(errno));
+	result = fcntl(wakeFds[1], F_SETFL, O_NONBLOCK);
+	ALOGE_IF(result<0, "error setting wakeFds[1] access mode (%s)", strerror(errno));
 	mWritePipeFd = wakeFds[1];
 
 	mPollFds[wake].fd = wakeFds[0];
 	mPollFds[wake].events = POLLIN;
 	mPollFds[wake].revents = 0;
+
+	int flushFds[2];
+	result = pipe(flushFds);
+	ALOGE_IF(result<0, "error creating flush pipe (%s)", strerror(errno));
+	result = fcntl(flushFds[0], F_SETFL, O_NONBLOCK);
+	ALOGE_IF(result<0, "error setting flushFds[0] access mode (%s)", strerror(errno));
+	result = fcntl(flushFds[1], F_SETFL, O_NONBLOCK);
+	ALOGE_IF(result<0, "error setting flushFds[1] access mode (%s)", strerror(errno));
+	mFlushWritePipeFd = flushFds[1];
+
+	mPollFds[flushPipe].fd = flushFds[0];
+	mPollFds[flushPipe].events = POLLIN;
+	mPollFds[flushPipe].revents = 0;
 	mInitialized = true;
 }
 
@@ -155,6 +173,8 @@ sensors_poll_context_t::~sensors_poll_context_t()
 
 	close(mPollFds[wake].fd);
 	close(mWritePipeFd);
+	close(mPollFds[flushPipe].fd);
+	close(mFlushWritePipeFd);
 	mInitialized = false;
 }
 
@@ -196,6 +216,33 @@ int sensors_poll_context_t::batch(int handle, int flags, int64_t period_ns, int6
 
 	return mSensors[index]->batch(handle, flags, period_ns, timeout);
 }
+
+int sensors_poll_context_t::flush(int handle)
+{
+	FUNC_LOG;
+	int result;
+	sensors_event_t flush_event_data;
+
+	int index = handleToDriver(handle);
+	if (index < 0) return index;
+
+	result = mSensors[index]->isActivated(handle);
+	if (!result)
+		return -EINVAL;
+
+	flush_event_data.sensor = 0;
+	flush_event_data.timestamp = 0;
+	flush_event_data.meta_data.sensor = handle;
+	flush_event_data.meta_data.what = META_DATA_FLUSH_COMPLETE;
+	flush_event_data.type = SENSOR_TYPE_META_DATA;
+	flush_event_data.version = META_DATA_VERSION;
+
+	result = write(mFlushWritePipeFd, &flush_event_data, sizeof(sensors_event_t));
+	ALOGE_IF(result<0, "error sending flush event data (%s)", strerror(errno));
+
+	return (result >= 0 ? 0 : result);
+}
+
 #endif
 
 int sensors_poll_context_t::pollEvents(sensors_event_t* data, int count)
@@ -220,6 +267,23 @@ int sensors_poll_context_t::pollEvents(sensors_event_t* data, int count)
 				data += nb;
 			}
 		}
+
+		/* flush event data */
+		if (count) {
+			if (mPollFds[flushPipe].revents & POLLIN) {
+				int nb = read(mPollFds[flushPipe].fd, data, count * sizeof(sensors_event_t));
+				if (nb < 0) {
+					ALOGE("error reading from flush pipe (%s)", strerror(errno));
+					return -errno;
+				}
+				nb = nb/sizeof(sensors_event_t);
+				mPollFds[flushPipe].revents = 0;
+				count -= nb;
+				nbEvents += nb;
+				data += nb;
+			}
+		}
+
 
 		if (count) {
 			ALOGV("%s: start poll syscall to kernel", __func__);
@@ -276,6 +340,13 @@ static int poll__batch(struct sensors_poll_device_1 *dev,
 	sensors_poll_context_t *ctx = (sensors_poll_context_t *)dev;
 	return ctx->batch(handle, flags, period_ns, timeout);
 }
+
+static int poll_flush(struct sensors_poll_device_1 *dev, int handle)
+{
+	FUNC_LOG;
+	sensors_poll_context_t *ctx = (sensors_poll_context_t *)dev;
+	return ctx->flush(handle);
+}
 #endif
 
 static int poll__poll(struct sensors_poll_device_t *dev,
@@ -323,6 +394,7 @@ static int open_sensors(const struct hw_module_t* module, const char* id,
 	dev->device.setDelay        = poll__setDelay;
 #ifdef HAL_VERSION_GT_1_0
 	dev->device.batch           = poll__batch;
+	dev->device.flush           = poll_flush;
 #endif
 	dev->device.poll            = poll__poll;
 

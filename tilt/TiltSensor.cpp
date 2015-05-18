@@ -36,7 +36,7 @@ TiltSensor::TiltSensor()
 {
     mPendingEvent.version = sizeof(sensors_event_t);
     mPendingEvent.sensor = ID_T;
-    mPendingEvent.type = SENSOR_TYPE_WRIST_TILT;
+    mPendingEvent.type = SENSOR_TYPE_WRIST_TILT_GESTURE;
     memset(mPendingEvent.data, 0, sizeof(mPendingEvent.data));
 }
 
@@ -203,7 +203,7 @@ int TiltSensor::readEvents(sensors_event_t* data, int count)
 
 	while (count && mInputReader.readEvent(&event)) {
 		int type = event->type;
-		if (type == EV_ABS) {
+		if (type == EV_MSC) {
 			mPendingEvent.data[0] = 1.0f;
 			/*mPendingEvent.data[event->code] = event->value;*/
 		} else if (type == EV_SYN) {

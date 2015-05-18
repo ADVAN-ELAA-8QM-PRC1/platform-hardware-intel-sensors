@@ -26,9 +26,6 @@
 #include "SensorBase.h"
 #include "InputEventReader.h"
 
-#include "clockwork_sensor.h"
-
-
 #define INPUT_SYSFS_BASE	"/sys/class/i2c-adapter/i2c-4/4-001e"
 #define POLL_PERIOD_MS		"poll_period_ms"
 #define RANGE				"range"

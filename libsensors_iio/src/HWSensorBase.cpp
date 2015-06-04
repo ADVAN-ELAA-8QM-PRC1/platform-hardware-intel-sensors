@@ -303,12 +303,14 @@ int HWSensorBase::FlushData()
 {
 	int err;
 
-	if (GetStatus() && (current_fifo_len > HW_SENSOR_BASE_DEFAULT_IIO_BUFFER_LEN)) {
-		err = write_sysfs_int((char *)FILENAME_FLUSH, common_data.iio_sysfs_path, 1);
-		if (err < 0) {
-			ALOGE("%s: Failed to write flush file \"%s/%s\".",
-					common_data.device_name, common_data.iio_sysfs_path, FILENAME_FLUSH);
-			return -EINVAL;
+	if (GetStatus()) {
+		if (current_fifo_len > HW_SENSOR_BASE_DEFAULT_IIO_BUFFER_LEN) {
+			err = write_sysfs_int((char *)FILENAME_FLUSH, common_data.iio_sysfs_path, 1);
+			if (err < 0) {
+				ALOGE("%s: Failed to write flush file \"%s/%s\".",
+						common_data.device_name, common_data.iio_sysfs_path, FILENAME_FLUSH);
+				return -EINVAL;
+			}
 		}
 	} else
 		return -EINVAL;

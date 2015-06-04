@@ -584,6 +584,10 @@ st_hal_load_free_iio_sysfs_path:
 static int st_hal_dev_flush(struct sensors_poll_device_1 *dev, int handle)
 {
 	STSensorHAL_data *hal_data = (STSensorHAL_data *)dev;
+	ALOGD("st_hal_dev_flush type=%d", ((struct sensor_t) hal_data->sensor_t_list[handle]).type);
+	/* One-shot sensor must return -EINVAL and not generate any flush complete metadata event */
+	if (SENSOR_TYPE_SIGNIFICANT_MOTION == ((struct sensor_t) hal_data->sensor_t_list[handle]).type)
+		return -EINVAL;
 
 	return hal_data->sensor_classes[handle]->FlushData();
 }

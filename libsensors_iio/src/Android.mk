@@ -77,6 +77,7 @@ endif
 
 
 LOCAL_SRC_FILES := \
+		sensor_cal.c \
 		iio_utils.c \
 		SensorHAL.cpp \
 		CircularBuffer.cpp \

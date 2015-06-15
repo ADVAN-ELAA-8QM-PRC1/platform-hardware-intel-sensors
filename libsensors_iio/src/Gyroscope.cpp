@@ -11,6 +11,7 @@
 #include <assert.h>
 #include <signal.h>
 
+#include "sensor_cal.h"
 #include "Gyroscope.h"
 
 #ifdef CONFIG_ST_HAL_GYRO_GBIAS_ESTIMATION_ENABLED
@@ -120,7 +121,10 @@ void Gyroscope::ProcessData(SensorBaseData *data)
 
 	sensor_event.gyro.status = SENSOR_STATUS_ACCURACY_HIGH;
 #else /* CONFIG_ST_HAL_GYRO_GBIAS_ESTIMATION_ENABLED */
-	sensor_event.gyro.status = SENSOR_STATUS_UNRELIABLE;
+	if (gyro_cal_data_loaded == true)
+		sensor_event.gyro.status = SENSOR_STATUS_ACCURACY_LOW;
+	else
+		sensor_event.gyro.status = SENSOR_STATUS_UNRELIABLE;
 #endif /* CONFIG_ST_HAL_GYRO_GBIAS_ESTIMATION_ENABLED */
 
 	data->processed[0] = data->raw[0] - data->offset[0];

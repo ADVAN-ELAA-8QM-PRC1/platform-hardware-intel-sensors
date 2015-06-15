@@ -26,6 +26,7 @@
 extern "C" {
 	#include "iio_utils.h"
 	#include "events.h"
+	#include "sensor_cal.h"
 };
 
 #define HW_SENSOR_BASE_DEFAULT_IIO_BUFFER_LEN	(2)

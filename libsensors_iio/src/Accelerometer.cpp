@@ -11,6 +11,7 @@
 #include <assert.h>
 #include <signal.h>
 
+#include "sensor_cal.h"
 #include "Accelerometer.h"
 
 Accelerometer::Accelerometer(HWSensorBaseCommonData *data, const char *name,
@@ -47,7 +48,10 @@ void Accelerometer::ProcessData(SensorBaseData *data)
 	sensor_event.acceleration.x = data->raw[0];
 	sensor_event.acceleration.y = data->raw[1];
 	sensor_event.acceleration.z = data->raw[2];
-	sensor_event.acceleration.status = SENSOR_STATUS_UNRELIABLE;
+	if (accl_cal_data_loaded == true)
+		sensor_event.acceleration.status = SENSOR_STATUS_ACCURACY_LOW;
+	else
+		sensor_event.acceleration.status = SENSOR_STATUS_UNRELIABLE;
 	sensor_event.timestamp = data->timestamp;
 
 	HWSensorBaseWithPollrate::WriteDataToPipe();

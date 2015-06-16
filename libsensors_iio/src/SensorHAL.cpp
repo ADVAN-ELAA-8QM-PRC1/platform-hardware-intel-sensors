@@ -749,8 +749,10 @@ static int st_hal_open_sensors(const struct hw_module_t *module,
 	hal_data->poll_device.batch = st_hal_dev_batch;
 	hal_data->poll_device.flush = st_hal_dev_flush;
 
-	do_cal_data_loading(ACCEL_SINDEX);
-	do_cal_data_loading(GYRO_SINDEX);
+	do_cal_data_loading(ACCEL_SINDEX, NON_WAKEUP);
+	do_cal_data_loading(ACCEL_SINDEX, WAKEUP);
+	do_cal_data_loading(GYRO_SINDEX, NON_WAKEUP);
+	do_cal_data_loading(GYRO_SINDEX, WAKEUP);
 
 	*device = &hal_data->poll_device.common;
 

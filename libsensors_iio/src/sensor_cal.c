@@ -23,6 +23,10 @@ int load_cali_data(const int sindex)
     int err = 0, num, sum;
     FILE *filp;
 
+    if (((sindex == ACCEL_SINDEX) && accl_cal_data_loaded) ||
+            ((sindex == GYRO_SINDEX) && gyro_cal_data_loaded))
+        return 0;
+
     filp = fopen(sensor_cali_data_path[sindex], "r");
     if (filp == NULL) {
         err = -errno;
@@ -51,7 +55,7 @@ out:
 }
 
 /* Write calibration data to iio channel offset */
-void set_cali_offset(const int sindex)
+void set_cali_offset(const int sindex, const bool wakeup)
 {
 #define MAX_BUF_LEN 64
     int err, j;
@@ -60,10 +64,10 @@ void set_cali_offset(const int sindex)
 
     for (j = 0; j < (Z_AXIS_INDEX + 1); j++) {
         err = snprintf(buf, MAX_BUF_LEN, "%s/%s",
-                sensor_sysfs_dir[sindex], sensor_offset[sindex][j]);
+                sensor_sysfs_dir[sindex][wakeup], sensor_offset[sindex][j]);
         if (err < 0) {
             ALOGE("%s/%s snprintf err=%d",
-                sensor_sysfs_dir[sindex], sensor_offset[sindex][j], err);
+                sensor_sysfs_dir[sindex][wakeup], sensor_offset[sindex][j], err);
             return;
         }
         filp = fopen(buf, "w");
@@ -82,7 +86,7 @@ void set_cali_offset(const int sindex)
 }
 
 
-void do_cal_data_loading(const int sindex)
+void do_cal_data_loading(const int sindex, const bool wakeup)
 {
     int err;
 
@@ -90,6 +94,6 @@ void do_cal_data_loading(const int sindex)
     if (err != 0)
         return;
 
-    set_cali_offset(sindex);
+    set_cali_offset(sindex, wakeup);
 
 }

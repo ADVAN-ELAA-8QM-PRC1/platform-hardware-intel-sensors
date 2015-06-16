@@ -20,6 +20,9 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+#define NON_WAKEUP    0
+#define WAKEUP    1
+
 enum SENSOR_INDEX {
     ACCEL_SINDEX = 0,
     GYRO_SINDEX,
@@ -36,9 +39,15 @@ static const char * const sensor_cali_data_path[] = {
     [GYRO_SINDEX] = "/config/sensor/gyro_cali",
 };
 
-static const char * const sensor_sysfs_dir[] = {
-    [ACCEL_SINDEX] = "/sys/devices/iio:device1",
-    [GYRO_SINDEX] = "/sys/devices/iio:device2",
+static const char * const sensor_sysfs_dir[][2] = {
+    {
+        [NON_WAKEUP] = "/sys/devices/iio:device1",
+        [WAKEUP] = "/sys/devices/iio:device2",
+    },
+    {
+        [NON_WAKEUP] = "/sys/devices/iio:device3",
+        [WAKEUP] = "/sys/devices/iio:device4",
+    },
 };
 
 static const char * const sensor_offset[][3] = {
@@ -58,6 +67,6 @@ static bool accl_cal_data_loaded;
 static bool gyro_cal_data_loaded;
 static int cal_data[2][3];
 
-void do_cal_data_loading(const int sindex);
+void do_cal_data_loading(const int sindex, const bool wakeup);
 
 #endif

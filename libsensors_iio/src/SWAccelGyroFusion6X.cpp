@@ -14,7 +14,7 @@
 #include "SWAccelGyroFusion6X.h"
 
 extern "C" {
-	#include "iNemoEngineAPI.h"
+	#include "vSensorAPI.h"
 }
 
 SWAccelGyroFusion6X::SWAccelGyroFusion6X(const char *name, int handle, int pipe_data_fd) :
@@ -30,7 +30,7 @@ SWAccelGyroFusion6X::SWAccelGyroFusion6X(const char *name, int handle, int pipe_
 	type_dependencies[SENSOR_BASE_DEPENDENCY_1] = SENSOR_TYPE_GYROSCOPE;
 	type_sensor_need_trigger = SENSOR_TYPE_GYROSCOPE;
 
-	iNemoEngine_API_Initialization_6X(NULL);
+	vSensor_API_Initialization_6X(NULL);
 }
 
 SWAccelGyroFusion6X::~SWAccelGyroFusion6X()
@@ -51,7 +51,7 @@ int SWAccelGyroFusion6X::Enable(int handle, bool enable)
 
 	if ((GetStatus() && !old_status) || (!GetStatus() && old_status)) {
 		sensor_event.timestamp = 0;
-		iNemoEngine_API_enable_6X(enable);
+		vSensor_API_enable_6X(enable);
 	}
 
 	return 0;
@@ -84,6 +84,12 @@ void SWAccelGyroFusion6X::SplitAndProcessData(SensorBaseData data[ST_ACCEL_GYRO_
 			case SENSOR_TYPE_GAME_ROTATION_VECTOR:
 				id = ST_ACCEL_GYRO_ROTATION_VECTOR_OUT_ID;
 				break;
+			case SENSOR_TYPE_LINEAR_ACCELERATION:
+				id = ST_ACCEL_GYRO_LINEAR_ACCEL_OUT_ID;
+		break;
+			case SENSOR_TYPE_GRAVITY:
+				id = ST_ACCEL_GYRO_GRAVITY_OUT_ID;
+		break;
 			default:
 				continue;
 			}
@@ -126,15 +132,25 @@ void SWAccelGyroFusion6X::TriggerEventReceived()
 		} while ((time_diff >= GetRealPollrate()) && (nomaxdata > 0));
 
 		if (err >= 0)
-			iNemoEngine_API_Run_6X(accel_data.raw, gyro_data.processed, gyro_data.timestamp);
+			vSensor_API_Run_6X(accel_data.raw, gyro_data.processed, gyro_data.timestamp);
 
 		sensor_event.timestamp = gyro_data.timestamp;
 
-		err = iNemoEngine_API_Get_Quaternion_6X(outdata[ST_ACCEL_GYRO_ROTATION_VECTOR_OUT_ID].processed);
+		err = vSensor_API_Get_Quaternion_6X(outdata[ST_ACCEL_GYRO_ROTATION_VECTOR_OUT_ID].processed);
+		if (err < 0)
+			return;
+
+		err = vSensor_API_Get_LinAcc_6X(outdata[ST_ACCEL_GYRO_LINEAR_ACCEL_OUT_ID].processed);
+		if (err < 0)
+			return;
+
+		err = vSensor_API_Get_Gravity_6X(outdata[ST_ACCEL_GYRO_GRAVITY_OUT_ID].processed);
 		if (err < 0)
 			return;
 
 		outdata[ST_ACCEL_GYRO_ROTATION_VECTOR_OUT_ID].timestamp = sensor_event.timestamp;
+		outdata[ST_ACCEL_GYRO_LINEAR_ACCEL_OUT_ID].timestamp = sensor_event.timestamp;
+		outdata[ST_ACCEL_GYRO_GRAVITY_OUT_ID].timestamp = sensor_event.timestamp;
 
 		SplitAndProcessData(outdata);
 	} while (data_remaining_gyro > 0);

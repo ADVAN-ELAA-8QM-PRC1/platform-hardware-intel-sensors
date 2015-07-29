@@ -46,8 +46,8 @@ endif
 
 
 ifdef CONFIG_ST_HAL_HAS_6AX_FUSION
-LOCAL_C_INCLUDES += $(LOCAL_PATH)/../lib/iNemoEngine_SensorFusion
-LOCAL_STATIC_LIBRARIES += iNemoEngine_SensorFusion
+LOCAL_C_INCLUDES += $(LOCAL_PATH)/../lib/vSensorFusion
+LOCAL_LDFLAGS += $(LOCAL_PATH)/../lib/vSensorFusion/vSensorFusion.a
 else
 ifdef CONFIG_ST_HAL_HAS_9AX_FUSION
 LOCAL_C_INCLUDES += $(LOCAL_PATH)/../lib/iNemoEngine_SensorFusion

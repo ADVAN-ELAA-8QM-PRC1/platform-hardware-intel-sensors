@@ -20,10 +20,10 @@ SWLinearAccel::SWLinearAccel(const char *name, int handle, int pipe_data_fd) :
 	sensor_t_data.stringType = SENSOR_STRING_TYPE_LINEAR_ACCELERATION;
 	sensor_t_data.flags = SENSOR_FLAG_CONTINUOUS_MODE;
 
-	sensor_t_data.maxRange = CONFIG_ST_HAL_ACCEL_RANGE;
+	type_dependencies[SENSOR_BASE_DEPENDENCY_0] = SENSOR_TYPE_ST_ACCEL_GYRO_FUSION6X;
+	type_sensor_need_trigger = SENSOR_TYPE_ST_ACCEL_GYRO_FUSION6X;
 
-	type_dependencies[SENSOR_BASE_DEPENDENCY_0] = SENSOR_TYPE_ST_ACCEL_MAGN_GYRO_FUSION9X;
-	type_sensor_need_trigger = SENSOR_TYPE_ST_ACCEL_MAGN_GYRO_FUSION9X;
+	num_data_axis = SENSOR_BASE_4AXIS;
 }
 
 SWLinearAccel::~SWLinearAccel()

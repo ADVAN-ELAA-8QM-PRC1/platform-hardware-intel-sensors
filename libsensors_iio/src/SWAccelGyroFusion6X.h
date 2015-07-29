@@ -21,7 +21,9 @@
 #include "SWSensorBase.h"
 
 #define ST_ACCEL_GYRO_ROTATION_VECTOR_OUT_ID		(0)
-#define ST_ACCEL_GYRO_MAX_OUT_ID			(1)
+#define ST_ACCEL_GYRO_LINEAR_ACCEL_OUT_ID		(1)
+#define ST_ACCEL_GYRO_GRAVITY_OUT_ID			(2)
+#define ST_ACCEL_GYRO_MAX_OUT_ID			(3)
 
 class SWAccelGyroFusion6X : public SWSensorBaseWithPollrate {
 protected:

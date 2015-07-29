@@ -55,9 +55,15 @@ export ST_HAL_HAS_GEOMAG_LIB=n
 endif
 
 ifneq ("$(wildcard $(CURRENT_DIRECTORY)/lib/iNemoEngine_SensorFusion/iNemoEngine_SensorFusion*)","")
-export ST_HAL_HAS_9X_6X_LIB=y
+export ST_HAL_HAS_9X_LIB=y
 else
-export ST_HAL_HAS_9X_6X_LIB=n
+export ST_HAL_HAS_9X_LIB=n
+endif
+
+ifneq ("$(wildcard $(CURRENT_DIRECTORY)/lib/vSensorFusion/vSensorFusion*)","")
+export ST_HAL_HAS_6X_LIB=y
+else
+export ST_HAL_HAS_6X_LIB=n
 endif
 
 ifneq ("$(wildcard $(CURRENT_DIRECTORY)/lib/STCompass/STCompass*)","")

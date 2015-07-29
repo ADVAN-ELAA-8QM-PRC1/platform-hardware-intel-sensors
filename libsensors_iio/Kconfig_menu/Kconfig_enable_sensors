@@ -122,9 +122,8 @@ choice
 config ST_HAL_GRAVITY_DISABLED
 	bool "Disabled"
 config ST_HAL_GRAVITY_AP_ENABLED
-	depends on ST_HAL_HAS_9AX_FUSION
+	depends on ST_HAL_HAS_6AX_FUSION
 	depends on ST_HAL_ACCEL_ENABLED
-	depends on ST_HAL_MAGN_ENABLED
 	depends on ST_HAL_GYRO_ENABLED
 	bool "Software by Application Processor Library"
 endchoice
@@ -138,9 +137,8 @@ choice
 config ST_HAL_LINEAR_DISABLED
 	bool "Disabled"
 config ST_HAL_LINEAR_AP_ENABLED
-	depends on ST_HAL_HAS_9AX_FUSION
+	depends on ST_HAL_HAS_6AX_FUSION
 	depends on ST_HAL_ACCEL_ENABLED
-	depends on ST_HAL_MAGN_ENABLED
 	depends on ST_HAL_GYRO_ENABLED
 	bool "Software by Application Processor Library"
 endchoice

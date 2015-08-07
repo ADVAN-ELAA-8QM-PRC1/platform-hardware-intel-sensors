@@ -26,6 +26,7 @@
 #include "SensorBase.h"
 #include "InputEventReader.h"
 
+#define SYSFS_MAX_PATH_LEN	64
 #define INPUT_SYSFS_BASE	"/sys/class/i2c-adapter/i2c-4/4-001e"
 #define POLL_PERIOD_MS		"poll_period_ms"
 #define RANGE				"range"

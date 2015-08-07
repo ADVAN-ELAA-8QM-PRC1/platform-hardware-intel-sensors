@@ -51,14 +51,11 @@ int TiltSensor::setDelay(int32_t /* handle */, int64_t ns)
 	int fd;
 	int n, len, ms, ret = 0;
 	char buf[6];
-	char *sysfs_path = (char *)malloc(strlen(INPUT_SYSFS_BASE)+strlen(POLL_PERIOD_MS)+2);
-
-	if(sysfs_path == NULL)
-		return -ENOMEM;
+	char sysfs_path[SYSFS_MAX_PATH_LEN];
 
 	ms = ns / 1000000;
 
-	sprintf(sysfs_path, "%s/%s", INPUT_SYSFS_BASE, POLL_PERIOD_MS);
+	snprintf(sysfs_path, SYSFS_MAX_PATH_LEN, "%s/%s", INPUT_SYSFS_BASE, POLL_PERIOD_MS);
 	fd = open(sysfs_path, O_RDWR);
 	if (fd > 0) {
 		len = 6;
@@ -73,70 +70,54 @@ int TiltSensor::setDelay(int32_t /* handle */, int64_t ns)
 	}
 
 error_free:
-	free(sysfs_path);
 	return ret;
 }
 int TiltSensor::enable(int32_t /* handle */, int en)
 {
 	int ret = 0;
 	int flags = en ? 1 : 0;
+	char sysfs_path[SYSFS_MAX_PATH_LEN];
 
 	if (flags != mEnabled) {
 		int fd;
 		char buf[2];
 
-		char *sysfs_path = (char *)malloc(strlen(INPUT_SYSFS_BASE)+strlen(ENABLE_STATE_PROG)+2);
-		if (sysfs_path == NULL)
-			return -ENOMEM;
-
-		sprintf(sysfs_path, "%s/%s", INPUT_SYSFS_BASE, ENABLE_STATE_PROG);
+		snprintf(sysfs_path, SYSFS_MAX_PATH_LEN, "%s/%s", INPUT_SYSFS_BASE, ENABLE_DEVICE);
 		fd = open(sysfs_path, O_RDWR);
 		if (fd > 0) {
 			buf[1] = 0;
 			if (flags)
-				buf[0] = '2';	/* 3: enable SM1 and SM2; 2: enable SM1; 1: enable SM2; 0: disbale */
+				buf[0] = '1';
 			else
-				buf[1] = '0';
+				buf[0] = '0';
 			write(fd, buf, sizeof(buf));
 			close(fd);
-			free(sysfs_path);
 		} else {
-			free(sysfs_path);
 			ret = -1;
 			goto out;
 		}
 
-		sysfs_path = (char *)malloc(strlen(INPUT_SYSFS_BASE)+strlen(ENABLE_INTERRUPT_OUTPUT)+2);
-		if (sysfs_path == NULL)
-			return -ENOMEM;
-
-		sprintf(sysfs_path, "%s/%s", INPUT_SYSFS_BASE, ENABLE_INTERRUPT_OUTPUT);
+		snprintf(sysfs_path, SYSFS_MAX_PATH_LEN, "%s/%s", INPUT_SYSFS_BASE, ENABLE_INTERRUPT_OUTPUT);
 		fd = open(sysfs_path, O_RDWR);
 		if (fd > 0) {
 			buf[1] = 0;
 			if (flags)
 				buf[0] = '2';	/* 3: enable int1 and int2; 2: enable int1; 1: enable int2; 0: disbale */
 			else
-				buf[1] = '0';
+				buf[0] = '0';
 			write(fd, buf, sizeof(buf));
 			close(fd);
-			free(sysfs_path);
 		} else {
-			free(sysfs_path);
 			ret = -1;
 			goto out;
 		}
 
-		sysfs_path = (char *)malloc(strlen(INPUT_SYSFS_BASE)+strlen(ENABLE_DEVICE)+2);
-		if (sysfs_path == NULL)
-			return -ENOMEM;
-
-		sprintf(sysfs_path, "%s/%s", INPUT_SYSFS_BASE, ENABLE_DEVICE);
+		snprintf(sysfs_path, SYSFS_MAX_PATH_LEN, "%s/%s", INPUT_SYSFS_BASE, ENABLE_STATE_PROG);
 		fd = open(sysfs_path, O_RDWR);
 		if(fd > 0) {
 			buf[1] = 0;
 			if (flags)
-				buf[0] = '1';
+				buf[0] = '2';	/* 3: enable SM1 and SM2; 2: enable SM1; 1: enable SM2; 0: disbale */
 			else
 				buf[0] = '0';
 			write(fd, buf, sizeof(buf));
@@ -145,7 +126,6 @@ int TiltSensor::enable(int32_t /* handle */, int en)
 		} else {
 			ret = -1;
 		}
-		free(sysfs_path);
 	}
 out:
 	return ret;
@@ -162,14 +142,11 @@ int TiltSensor::batch(int /* handle */, int /* flags */, int64_t period_ns, int6
 	int fd;
 	int n, len, ms, ret = 0;
 	char buf[6];
-	char *sysfs_path = (char *)malloc(strlen(INPUT_SYSFS_BASE)+strlen(POLL_PERIOD_MS)+2);
-
-	if(sysfs_path == NULL)
-		return -ENOMEM;
+	char sysfs_path[SYSFS_MAX_PATH_LEN];
 
 	ms = period_ns / 1000000;
 
-	sprintf(sysfs_path, "%s/%s", INPUT_SYSFS_BASE, POLL_PERIOD_MS);
+	snprintf(sysfs_path, SYSFS_MAX_PATH_LEN, "%s/%s", INPUT_SYSFS_BASE, POLL_PERIOD_MS);
 	fd = open(sysfs_path, O_RDWR);
 	if (fd > 0) {
 		len = 6;
@@ -184,7 +161,6 @@ int TiltSensor::batch(int /* handle */, int /* flags */, int64_t period_ns, int6
 	}
 
 error_free:
-	free(sysfs_path);
 	return ret;
 }
 #endif

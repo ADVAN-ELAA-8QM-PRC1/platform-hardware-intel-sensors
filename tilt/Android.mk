@@ -30,7 +30,7 @@ VERSION_KK := $(shell test $(MAJOR_VERSION) -eq 4 -a $(MINOR_VERSION) -eq 4 && e
 VERSION_L := $(shell test $(MAJOR_VERSION) -eq 5 && echo true)
 #ANDROID version check END
 
-LOCAL_MODULE := sensor_tilt.$(TARGET_DEVICE)
+LOCAL_MODULE := sensor_tilt.robby
 
 LOCAL_PRELINK_MODULE := false
 LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw

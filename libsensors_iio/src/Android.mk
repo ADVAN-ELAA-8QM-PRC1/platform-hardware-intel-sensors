@@ -26,7 +26,7 @@ include $(ST_HAL_ROOT_PATH)/../.config
 LOCAL_PRELINK_MODULE := false
 
 ifdef TARGET_DEVICE
-LOCAL_MODULE := libsensors_iio.$(TARGET_DEVICE)
+LOCAL_MODULE := libsensors_iio.robby
 else
 LOCAL_MODULE := libsensors_iio.default
 endif

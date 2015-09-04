@@ -22,7 +22,7 @@
 #include <sys/cdefs.h>
 #include <sys/types.h>
 
-#if defined ANDROID_L
+#if ANDROID_VERSION >= 5
 /* #warning "build for Wear" */
 #define LOGV_IF ALOGV_IF
 #define LOGE_IF ALOGE_IF

@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include <cutils/log.h>
 #include "sensor_cal.h"
+
+#include <errno.h>
+#include <cutils/log.h>
 
 /* Load sensor calibration data */
 int load_cali_data(const int sindex)

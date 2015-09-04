@@ -14,6 +14,7 @@
 #include <string.h>
 #include <signal.h>
 #include <stdint.h>
+#include <endian.h>
 
 #include "HWSensorBase.h"
 

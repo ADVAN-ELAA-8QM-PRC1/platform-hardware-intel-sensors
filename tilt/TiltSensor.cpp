@@ -27,8 +27,6 @@
 
 #include "TiltSensor.h"
 
-
-
 TiltSensor::TiltSensor()
     : SensorBase(NULL, "lis3dsh_acc"),
       mEnabled(0),
@@ -46,32 +44,6 @@ TiltSensor::~TiltSensor() {
     }
 }
 
-int TiltSensor::setDelay(int32_t /* handle */, int64_t ns)
-{
-	int fd;
-	int n, len, ms, ret = 0;
-	char buf[6];
-	char sysfs_path[SYSFS_MAX_PATH_LEN];
-
-	ms = ns / 1000000;
-
-	snprintf(sysfs_path, SYSFS_MAX_PATH_LEN, "%s/%s", INPUT_SYSFS_BASE, POLL_PERIOD_MS);
-	fd = open(sysfs_path, O_RDWR);
-	if (fd > 0) {
-		len = 6;
-		memset(buf, 0, len);
-		snprintf(buf, len, "%d", ms);
-		write(fd, buf, sizeof(buf));
-		close(fd);
-	} else {
-		ret = -EIO;
-		ALOGE("file  open failure\n");
-		goto error_free;
-	}
-
-error_free:
-	return ret;
-}
 int TiltSensor::enable(int32_t /* handle */, int en)
 {
 	int ret = 0;
@@ -135,35 +107,6 @@ int TiltSensor::isActivated(int /* handle */)
 {
 	return mEnabled;
 }
-
-#ifdef HAL_VERSION_GT_1_0
-int TiltSensor::batch(int /* handle */, int /* flags */, int64_t period_ns, int64_t /* timeout */)
-{
-	int fd;
-	int n, len, ms, ret = 0;
-	char buf[6];
-	char sysfs_path[SYSFS_MAX_PATH_LEN];
-
-	ms = period_ns / 1000000;
-
-	snprintf(sysfs_path, SYSFS_MAX_PATH_LEN, "%s/%s", INPUT_SYSFS_BASE, POLL_PERIOD_MS);
-	fd = open(sysfs_path, O_RDWR);
-	if (fd > 0) {
-		len = 6;
-		memset(buf, 0, len);
-		snprintf(buf, len, "%d", ms);
-		write(fd, buf, sizeof(buf));
-		close(fd);
-	} else {
-		ret = -EIO;
-		ALOGE("file  open failure\n");
-		goto error_free;
-	}
-
-error_free:
-	return ret;
-}
-#endif
 
 int TiltSensor::readEvents(sensors_event_t* data, int count)
 {

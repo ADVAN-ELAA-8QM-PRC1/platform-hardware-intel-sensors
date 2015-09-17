@@ -47,12 +47,8 @@ public:
     virtual ~TiltSensor();
 
     virtual int readEvents(sensors_event_t* data, int count);
-    virtual int setDelay(int32_t handle, int64_t ns);
     virtual int enable(int32_t handle, int enabled);
     virtual int isActivated(int handle);
-#ifdef HAL_VERSION_GT_1_0
-    virtual int batch(int handle, int flags, int64_t period_ns, int64_t timeout);
-#endif
 
 private:
     int mEnabled;

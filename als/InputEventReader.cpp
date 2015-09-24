@@ -46,7 +46,7 @@ InputEventCircularReader::~InputEventCircularReader()
 }
 
 /* TODO: clear DEBUG flag on production builds, keep it during integration */
-#define INPUT_EVENT_DEBUG (1)
+#define INPUT_EVENT_DEBUG (0)
 ssize_t InputEventCircularReader::fill(int fd)
 {
     FUNC_LOG;

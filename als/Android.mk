@@ -37,8 +37,7 @@ LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
 
 LOCAL_MODULE_TAGS := optional
 # TODO: remove LOG_NDEBUG=0 for production builds, keep it during integration
-LOCAL_CFLAGS := -DLOG_TAG=\"MvnSensors\" -DLOG_NDEBUG=0
-LOCAL_CFLAGS += -DINVENSENSE_COMPASS_CAL
+LOCAL_CFLAGS := -DLOG_TAG=\"LightSensor\"
 
 ifeq ($(VERSION_JB),true)
 LOCAL_CFLAGS += -DANDROID_JB

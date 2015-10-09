@@ -136,7 +136,7 @@ void SWSensorBaseWithPollrate::WriteDataToPipe()
 	if (!GetStatusOfHandle(sensor_t_data.handle))
 		return;
 
-	if (sensor_event.timestamp > (last_data_timestamp + GetDelay())) {
+	if (sensor_event.timestamp >= (last_data_timestamp + real_pollrate)) {
 		err = write(android_pipe_fd, &sensor_event, sizeof(sensor_event));
 		if (err < 0) {
 			ALOGE("%s: Failed to write sensor data to pipe.", android_name);

@@ -446,15 +446,7 @@ void HWSensorBaseWithPollrate::WriteDataToPipe()
 	if (!GetStatusOfHandle(sensor_t_data.handle))
 		return;
 
-	/** Actually, the actual ODR would be slightly bigger than the requested,
-	 *  Eg: for lsm6ds3, real ODR is 26, 52, 104..., so the actual ODR is 104Hz
-	 *  when 100Hz is requested.
-	 *  As a result, the reporting time interval between two adjacent events
-	 *  would be smaller than that from GetDelay().
-	 *  To guarantee the requested ODR in all cases, the reporting time interval
-	 *  should be greater than GetDelay()/2.
-	 */
-	if (sensor_event.timestamp > (last_data_timestamp + GetDelay() / 2)) {
+	if (sensor_event.timestamp >= (last_data_timestamp + real_pollrate)) {
 		err = write(android_pipe_fd, &sensor_event, sizeof(sensor_event));
 		if (err < 0) {
 			ALOGE("%s: Failed to write sensor data to pipe.", android_name);

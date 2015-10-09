@@ -76,7 +76,7 @@ public:
 	virtual ~HWSensorBase();
 
 	virtual int Enable(int handle, bool enable);
-	virtual int FlushData();
+	virtual int FlushData(int base);
 	virtual void ThreadTask();
 };
 

@@ -140,7 +140,7 @@ public:
 
 	bool FillSensor_tData(struct sensor_t *data);
 
-	virtual int FlushData();
+	virtual int FlushData(int);
 
 	virtual void ProcessData(SensorBaseData *data);
 	virtual void ProcessEvent(struct iio_event_data *event_data);

@@ -355,7 +355,7 @@ bool SensorBase::FillSensor_tData(struct sensor_t *data)
 	return true;
 }
 
-int SensorBase::FlushData()
+int SensorBase::FlushData(int)
 {
 	int err;
 	sensors_event_t flush_event_data;

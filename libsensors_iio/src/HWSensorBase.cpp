@@ -299,7 +299,7 @@ restore_status_enable:
 	return err;
 }
 
-int HWSensorBase::FlushData()
+int HWSensorBase::FlushData(int base)
 {
 	int err;
 
@@ -315,7 +315,10 @@ int HWSensorBase::FlushData()
 	} else
 		return -EINVAL;
 
-	return SensorBase::FlushData();
+	if (base)
+		return SensorBase::FlushData(0);
+	else
+		return 0;
 }
 
 void HWSensorBase::ThreadTask()

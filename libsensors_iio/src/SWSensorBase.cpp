@@ -72,20 +72,20 @@ int SWSensorBase::AddSensorDependency(SensorBase *p)
 	return SensorBase::AddSensorDependency(p);
 }
 
-int SWSensorBase::FlushData()
+int SWSensorBase::FlushData(int)
 {
 	int err, i;
 
 	if (GetStatus() && (GetMinTimeout() > 0)) {
 		for (i = 0; i < (int)dependencies_num; i++) {
-			err = dependencies[i]->FlushData();
+			err = dependencies[i]->FlushData(0);
 			if (err < 0)
 				return -EINVAL;
 		}
 	} else
 		return -EINVAL;
 
-	return SensorBase::FlushData();
+	return SensorBase::FlushData(0);
 }
 
 void SWSensorBase::ThreadTask()

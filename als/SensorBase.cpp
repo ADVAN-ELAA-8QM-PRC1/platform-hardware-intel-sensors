@@ -35,10 +35,18 @@ SensorBase::SensorBase(const char* dev_name,
                                                 data_fd(-1)
 {
     FUNC_LOG;
+    int ret;
+    unsigned int clockId;
     ALOGV("%s(): dev_name=%s, data_name=%s ", __func__, dev_name, data_name);
 
     if (data_name) {
         data_fd = openInput(data_name);
+        if (data_fd >= 0) {
+            clockId = CLOCK_BOOTTIME;
+            ret = ioctl(data_fd, EVIOCSCLOCKID, &clockId);
+            if (ret != 0)
+               ALOGE("set timestamp to CLOCK_BOOTTIME failed!");
+        }
     }
 }
 

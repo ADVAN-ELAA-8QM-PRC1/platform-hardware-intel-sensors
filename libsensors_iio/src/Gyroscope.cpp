@@ -88,6 +88,10 @@ int Gyroscope::SetDelay(int handle, int64_t period_ns, int64_t timeout)
 
 void Gyroscope::ProcessData(SensorBaseData *data)
 {
+#define	X_SCALING_FACTOR	1
+#define	Y_SCALING_FACTOR	(360 / 350)
+#define	Z_SCALING_FACTOR	1
+
 	float tmp_raw_data[num_data_axis];
 #ifdef CONFIG_ST_HAL_GYRO_GBIAS_ESTIMATION_ENABLED
 	int64_t time_diff = 0;
@@ -131,9 +135,10 @@ void Gyroscope::ProcessData(SensorBaseData *data)
 	data->processed[1] = data->raw[1] - data->offset[1];
 	data->processed[2] = data->raw[2] - data->offset[2];
 
-	sensor_event.gyro.x = data->processed[0];
-	sensor_event.gyro.y = data->processed[1];
-	sensor_event.gyro.z = data->processed[2];
+	/* FIXME: scaling gyro data for better accuracy */
+	sensor_event.gyro.x = data->processed[0] * X_SCALING_FACTOR;
+	sensor_event.gyro.y = data->processed[1] * Y_SCALING_FACTOR;
+	sensor_event.gyro.z = data->processed[2] * Z_SCALING_FACTOR;
 	sensor_event.timestamp = data->timestamp;
 
 	HWSensorBaseWithPollrate::WriteDataToPipe();

@@ -105,6 +105,17 @@ char* SensorBase::GetName()
 	return (char *)sensor_t_data.name;
 }
 
+int64_t SensorBase::GetTimestamp()
+{
+    struct timespec t;
+
+    t.tv_sec = 0;
+        t.tv_nsec = 0;
+    clock_gettime(CLOCK_BOOTTIME, &t);
+
+    return int64_t(t.tv_sec) * 1000000000LL + t.tv_nsec;
+}
+
 int SensorBase::Enable(int handle, bool enable)
 {
 	int err, i = 0;
@@ -129,6 +140,7 @@ int SensorBase::Enable(int handle, bool enable)
 
 		ResetBitEnableMask(handle);
 	}
+	last_data_timestamp = GetTimestamp();
 
 #if (CONFIG_ST_HAL_DEBUG_LEVEL >= ST_HAL_DEBUG_INFO)
 	if (((old_status && !GetStatus()) || (!old_status && GetStatus())) && (sensor_t_data.type < SENSOR_TYPE_ST_CUSTOM_NO_SENSOR)) {

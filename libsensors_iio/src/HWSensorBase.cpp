@@ -446,7 +446,7 @@ void HWSensorBaseWithPollrate::WriteDataToPipe()
 	if (!GetStatusOfHandle(sensor_t_data.handle))
 		return;
 
-	if (sensor_event.timestamp >= (last_data_timestamp + real_pollrate)) {
+	if (sensor_event.timestamp >= last_data_timestamp) {
 		err = write(android_pipe_fd, &sensor_event, sizeof(sensor_event));
 		if (err < 0) {
 			ALOGE("%s: Failed to write sensor data to pipe.", android_name);
@@ -454,5 +454,6 @@ void HWSensorBaseWithPollrate::WriteDataToPipe()
 		}
 
 		last_data_timestamp = sensor_event.timestamp;
-	}
+	} else
+		ALOGE("Timestamp out of order, event from type=%d dropped", sensor_event.type);
 }

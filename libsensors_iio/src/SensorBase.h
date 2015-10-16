@@ -123,6 +123,8 @@ public:
 
 	char* GetName();
 
+	int64_t GetTimestamp();
+
 	virtual int Enable(int handle, bool enable);
 	bool GetStatus();
 

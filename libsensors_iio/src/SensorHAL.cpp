@@ -705,7 +705,6 @@ static int st_hal_create_android_pipe(STSensorHAL_data *hal_data)
 		return err;
 
 	fcntl(pipe_fd[0], F_SETFL, O_NONBLOCK);
-	fcntl(pipe_fd[1], F_SETFL, O_NONBLOCK);
 
 	hal_data->android_pollfd.events = POLLIN;
 	hal_data->android_pollfd.fd = pipe_fd[0];

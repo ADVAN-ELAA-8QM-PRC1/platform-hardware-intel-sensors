@@ -112,19 +112,29 @@ void SWAccelGyroFusion6X::TriggerEventReceived()
 {
 	int64_t time_diff = 0;
 	SensorBaseData accel_data, gyro_data;
-	int err, data_remaining_accel, nomaxdata = 10;
+	int err, data_remaining_gyro, nomaxdata = 10;
 
-	memset(&gyro_data, 0, sizeof(SensorBaseData));
 	do {
+		data_remaining_gyro = GetLatestValidDataFromDependency(SENSOR_BASE_DEPENDENCY_1, &gyro_data);
+		if (data_remaining_gyro < 0)
+			return;
 
-		data_remaining_accel = GetLatestValidDataFromDependency(SENSOR_BASE_DEPENDENCY_0, &accel_data);
-		if (data_remaining_accel < 0) {
-			return ;
-		}
+		do {
+			err = GetLatestValidDataFromDependency(SENSOR_BASE_DEPENDENCY_0, &accel_data);
+			if (err < 0) {
+				nomaxdata--;
+				usleep(200);
+				continue;
+			}
 
-		vSensor_API_Run_6X(accel_data.raw, gyro_data.processed, accel_data.timestamp);
+			time_diff = gyro_data.timestamp - accel_data.timestamp;
 
-		sensor_event.timestamp = accel_data.timestamp;
+		} while ((time_diff >= GetRealPollrate()) && (nomaxdata > 0));
+
+		if (err >= 0)
+			vSensor_API_Run_6X(accel_data.raw, gyro_data.processed, gyro_data.timestamp);
+
+		sensor_event.timestamp = gyro_data.timestamp;
 
 		err = vSensor_API_Get_Quaternion_6X(outdata[ST_ACCEL_GYRO_ROTATION_VECTOR_OUT_ID].processed);
 		if (err < 0)
@@ -143,5 +153,5 @@ void SWAccelGyroFusion6X::TriggerEventReceived()
 		outdata[ST_ACCEL_GYRO_GRAVITY_OUT_ID].timestamp = sensor_event.timestamp;
 
 		SplitAndProcessData(outdata);
-	} while (data_remaining_accel > 0);
+	} while (data_remaining_gyro > 0);
 }

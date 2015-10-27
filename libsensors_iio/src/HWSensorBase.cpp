@@ -230,21 +230,30 @@ HWSensorBase::~HWSensorBase()
 	close(pollfd_iio[1].fd);
 }
 
-int HWSensorBase::WriteBufferLenght(unsigned int buf_len)
+int HWSensorBase::WriteBufferLenght(unsigned int buf_len, unsigned int store_len)
 {
-	unsigned int hw_buf_fifo_len;
-	int err, current_len, buff_enable;
+	unsigned int hw_buf_fifo_len, hw_store_fifo_len;
+	int err, current_len, cur_store_len, buff_enable;
 
 	hw_buf_fifo_len = buf_len * HW_SENSOR_BASE_DEFAULT_IIO_BUFFER_LEN;
 	if (hw_buf_fifo_len == 0)
 		hw_buf_fifo_len = HW_SENSOR_BASE_DEFAULT_IIO_BUFFER_LEN;
+
+	hw_store_fifo_len = store_len * HW_SENSOR_BASE_DEFAULT_IIO_BUFFER_LEN;
+	if (hw_store_fifo_len == 0)
+		hw_store_fifo_len = HW_SENSOR_BASE_DEFAULT_IIO_BUFFER_LEN;
 
 	current_len = read_sysfs_posint((char *)FILENAME_BUFFER_LENGTH,
 							common_data.iio_sysfs_path);
 	if (current_len < 0)
 		return current_len;
 
-	if (current_len == (int)hw_buf_fifo_len)
+	cur_store_len = read_sysfs_posint((char *)FILENAME_BUFFER_STORE_LENGTH,
+							common_data.iio_sysfs_path);
+	if (cur_store_len < 0)
+		return cur_store_len;
+
+	if ((current_len == (int)hw_buf_fifo_len) && (cur_store_len == (int)hw_store_fifo_len))
 		return 0;
 
 	buff_enable = read_sysfs_posint((char *)FILENAME_BUFFER_ENABLE,
@@ -261,6 +270,11 @@ int HWSensorBase::WriteBufferLenght(unsigned int buf_len)
 
 	err = write_sysfs_int_and_verify((char *)FILENAME_BUFFER_LENGTH,
 						common_data.iio_sysfs_path, hw_buf_fifo_len);
+	if (err < 0)
+		return err;
+
+	err = write_sysfs_int_and_verify((char *)FILENAME_BUFFER_STORE_LENGTH,
+						common_data.iio_sysfs_path, hw_store_fifo_len);
 	if (err < 0)
 		return err;
 
@@ -398,9 +412,10 @@ HWSensorBaseWithPollrate::~HWSensorBaseWithPollrate()
 
 int HWSensorBaseWithPollrate::SetDelay(int handle, int64_t period_ns, int64_t timeout)
 {
+#define	MIN_BUF_TIMEOUT	2500000000ULL
 	int err, i;
-	int64_t min_pollrate_ns;
-	unsigned int sampling_frequency, buf_len;
+	int64_t min_pollrate_ns, tmp_real_pollrate;
+	unsigned int sampling_frequency, buf_len, store_len;
 
 	err = HWSensorBase::SetDelay(handle, period_ns, timeout);
 	if (err < 0)
@@ -424,14 +439,18 @@ int HWSensorBaseWithPollrate::SetDelay(int handle, int64_t period_ns, int64_t ti
 		return err;
 	}
 
-	real_pollrate = FREQUENCY_TO_NS(sampling_frequency_available.hz[i]);
+	tmp_real_pollrate = real_pollrate = FREQUENCY_TO_NS(sampling_frequency_available.hz[i]);
 
 	if (sensor_t_data.fifoMaxEventCount > 0) {
-		buf_len = GetMinTimeout() / FREQUENCY_TO_NS(sampling_frequency_available.hz[i]);
-		if (buf_len > sensor_t_data.fifoMaxEventCount)
-			buf_len = sensor_t_data.fifoMaxEventCount;
+		store_len = GetMinTimeout() / tmp_real_pollrate;
+		if (store_len > sensor_t_data.fifoMaxEventCount)
+			store_len = sensor_t_data.fifoMaxEventCount;
 
-		err = WriteBufferLenght(buf_len);
+		buf_len = MIN_BUF_TIMEOUT / tmp_real_pollrate;
+		if (buf_len < store_len)
+			buf_len = store_len;
+
+		err = WriteBufferLenght(buf_len, store_len);
 		if (err < 0)
 			return err;
 	}

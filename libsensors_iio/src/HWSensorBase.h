@@ -36,6 +36,7 @@ extern "C" {
 
 #define FILENAME_BUFFER_ENABLE			"buffer/enable"
 #define FILENAME_BUFFER_LENGTH			"buffer/length"
+#define FILENAME_BUFFER_STORE_LENGTH		"buffer/store_length"
 #define FILENAME_SAMPLING_FREQ			"sampling_frequency"
 #define FILENAME_MAX_RATE_DELIVERY		"max_delivery_rate"
 #define FILENAME_HRTIMER_TRIGGER_FREQ		"frequency"
@@ -67,7 +68,7 @@ protected:
 	unsigned int current_fifo_len;
 	HWSensorBaseCommonData common_data;
 
-	int WriteBufferLenght(unsigned int buf_len);
+	int WriteBufferLenght(unsigned int buf_len, unsigned int store_len);
 
 public:
 	HWSensorBase(HWSensorBaseCommonData *data, const char *name,

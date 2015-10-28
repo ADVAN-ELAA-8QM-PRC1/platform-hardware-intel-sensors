@@ -75,7 +75,8 @@ int StepCounter::SetDelay(int handle, int64_t period_ns, int64_t timeout)
 
 void StepCounter::ProcessData(SensorBaseData *data)
 {
-	sensor_event.u64.step_counter = (uint64_t)data->raw[0];
+#define	STEP_COUNTER_DATA_MASK	0xFFFF
+	sensor_event.u64.step_counter = (uint64_t)data->raw[0] & STEP_COUNTER_DATA_MASK;
 	sensor_event.timestamp = data->timestamp;
 
 	HWSensorBase::WriteDataToPipe();

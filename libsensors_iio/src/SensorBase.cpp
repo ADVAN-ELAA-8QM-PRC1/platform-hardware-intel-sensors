@@ -367,8 +367,6 @@ int SensorBase::FlushData(int)
 	flush_event_data.type = SENSOR_TYPE_META_DATA;
 	flush_event_data.version = META_DATA_VERSION;
 
-	usleep(ST_SENSOR_BASE_WAIT_US_BEFORE_SEND_FLUSH);
-
 	err = write(android_pipe_fd, &flush_event_data, sizeof(sensor_event));
 	if (err < 0) {
 		ALOGE("%s: Failed to write flush event data to pipe.", android_name);

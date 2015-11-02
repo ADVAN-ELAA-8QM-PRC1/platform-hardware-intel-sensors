@@ -690,6 +690,9 @@ static int st_hal_dev_close(struct hw_device_t *dev)
 	return 0;
 }
 
+
+#define PIPE_SIZE (64 * 1024)
+
 /**
  * st_hal_create_android_pipe() - Create dev_poll pipe
  * @hal_data: hal common data.
@@ -706,6 +709,7 @@ static int st_hal_create_android_pipe(STSensorHAL_data *hal_data)
 
 	fcntl(pipe_fd[0], F_SETFL, O_NONBLOCK);
 	fcntl(pipe_fd[1], F_SETFL, O_NONBLOCK);
+	fcntl(pipe_fd[1], F_SETPIPE_SZ, PIPE_SIZE);
 
 	hal_data->android_pollfd.events = POLLIN;
 	hal_data->android_pollfd.fd = pipe_fd[0];

@@ -97,9 +97,9 @@ int SWSensorBase::FlushData(bool /*need_report_event*/)
 		}
 
 		if (report_event_at_once)
-			return SensorBase::FlushData(false);
-		else
-			return 0;
+			SensorBase::FlushData(false);
+
+		return 0;
 	} else
 		return -EINVAL;
 }
@@ -147,7 +147,7 @@ int SWSensorBaseWithPollrate::SetDelay(int handle, int64_t period_ns, int64_t ti
 
 void SWSensorBaseWithPollrate::WriteDataToPipe()
 {
-	int err;
+	int err, retry = 3;
 	std::vector<int64_t>::iterator it;
 
 	if (!GetStatusOfHandle(sensor_t_data.handle))
@@ -170,24 +170,31 @@ void SWSensorBaseWithPollrate::WriteDataToPipe()
 				flush_event_data.type = SENSOR_TYPE_META_DATA;
 				flush_event_data.version = META_DATA_VERSION;
 
-				err = write(android_pipe_fd, &flush_event_data, sizeof(sensor_event));
+				while (retry) {
+					err = SensorBase::WritePipeWithPoll(&flush_event_data, sizeof(sensor_event),
+											POLL_TIMEOUT_FLUSH_EVENT);
+					if (err > 0)
+						break;
 
-				if (err < 0) {
-					ALOGE("%s: Failed to write SW flush_complete, errno=%d", android_name, errno);
-					return;
+					retry--;
+					ALOGI("%s: Retry writing flush event data to pipe, retry_cnt: %d.", android_name, 3-retry);
 				}
+
+				if (retry ==  0)
+					ALOGE("%s: Failed to write SW flush_complete, err=%d", android_name, err);
+				else
+					ALOGD("SW flush_complete sent");
 
 				last_timestamp = *it;
 				it = SensorBase::timestamp.erase(it);
-				ALOGD("SW flush_complete sent");
 			} else
 				break;
 		}
 	}
 
 	if (sensor_event.timestamp >= (last_data_timestamp + real_pollrate * 9 / 10)) {
-		err = write(android_pipe_fd, &sensor_event, sizeof(sensor_event));
-		if (err < 0) {
+		err = SensorBase::WritePipeWithPoll(&sensor_event, sizeof(sensor_event), POLL_TIMEOUT_DATA_EVENT);
+		if (err <= 0) {
 			ALOGE("%s: Failed to write sensor data - err=%d.", android_name, err);
 			return;
 		}

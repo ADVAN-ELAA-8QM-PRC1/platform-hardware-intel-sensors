@@ -24,6 +24,7 @@
 #include <time.h>
 #include <pthread.h>
 #include <errno.h>
+#include <poll.h>
 #include <vector>
 
 #include <hardware/sensors.h>
@@ -45,6 +46,9 @@
 #define SENSOR_BASE_MAX_DEPENDENCY		(5)
 
 #define SENSOR_BASE_ANDROID_NAME_MAX		(40)
+
+#define POLL_TIMEOUT_FLUSH_EVENT		(-1)
+#define POLL_TIMEOUT_DATA_EVENT		(1000)
 
 #define GAUSS_TO_UTESLA(x)			((x) * 100.0f)
 #define NS_TO_FREQUENCY(x)			(1E9 / x)
@@ -142,6 +146,7 @@ public:
 
 	bool FillSensor_tData(struct sensor_t *data);
 
+	virtual int WritePipeWithPoll(sensors_event_t *event_data, int size, int timeout);
 	virtual int FlushData(bool);
 
 	virtual void ProcessData(SensorBaseData *data);

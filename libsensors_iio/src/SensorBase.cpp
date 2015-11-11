@@ -369,9 +369,43 @@ bool SensorBase::FillSensor_tData(struct sensor_t *data)
 	return true;
 }
 
-int SensorBase::FlushData(bool)
+int SensorBase::WritePipeWithPoll(sensors_event_t *event_data, int size, int timeout)
 {
 	int err;
+	struct pollfd poll_fd;
+
+	poll_fd.fd = android_pipe_fd;
+	poll_fd.events = POLLOUT;
+
+	err = poll(&poll_fd, (unsigned long)1, timeout);
+	if (err < 0) {
+		ALOGE("%s: error happened when polling pipe, errno: %d.", android_name, errno);
+		return err;
+	}
+
+	if (err == 0) {
+		ALOGE("%s: polling pipe timeout, timeout = %d.", android_name, timeout);
+		return err;
+	}
+
+	if (poll_fd.revents&POLLOUT) {
+		err = write(android_pipe_fd, event_data, size);
+		if (err <= 0) {
+			ALOGE("%s: Failed to write to pipe, timeout: %d, errno: %d.",
+				android_name, timeout, errno);
+			return err;
+		}
+	} else {
+		ALOGE("%s: polling was breaked by unexpected event: %d", android_name, poll_fd.revents);
+		return -EAGAIN;
+	}
+
+	return err;
+}
+
+int SensorBase::FlushData(bool)
+{
+	int err = 0, retry = 3;
 	sensors_event_t flush_event_data;
 
 	flush_event_data.sensor = 0;
@@ -381,14 +415,22 @@ int SensorBase::FlushData(bool)
 	flush_event_data.type = SENSOR_TYPE_META_DATA;
 	flush_event_data.version = META_DATA_VERSION;
 
-	err = write(android_pipe_fd, &flush_event_data, sizeof(sensor_event));
-	if (err < 0) {
-		ALOGE("%s: Failed to write flush event data to pipe.", android_name);
-		return err;
+	while (retry) {
+		err = WritePipeWithPoll(&flush_event_data, sizeof(sensor_event),
+						POLL_TIMEOUT_FLUSH_EVENT);
+		if (err > 0)
+			break;
+
+		retry--;
+		ALOGI("%s: Retry writing flush event data to pipe, retry_cnt: %d.", android_name, 3-retry);
 	}
 
-	ALOGD("SensorBase::FlushData completed.");
-	return 0;
+	if (retry == 0)
+		ALOGE("%s: Failed to write flush event data to pipe, err=%d.", android_name, err);
+	else
+		ALOGD("SensorBase::FlushData completed.");
+
+	return err;
 }
 
 void SensorBase::WriteDataToPipe()
@@ -399,8 +441,9 @@ void SensorBase::WriteDataToPipe()
 		return;
 
 	if (sensor_event.timestamp > last_data_timestamp) {
-		err = write(android_pipe_fd, &sensor_event, sizeof(sensor_event));
-		if (err < 0) {
+		err = WritePipeWithPoll(&sensor_event, sizeof(sensor_event),
+						POLL_TIMEOUT_DATA_EVENT);
+		if (err <= 0) {
 			ALOGE("%s: Failed to write sensor data to pipe.", android_name);
 			return;
 		}

@@ -18,6 +18,7 @@
 #include "HWSensorBase.h"
 
 #define DEFAULT_HRTIMER_PERIOD_NS		(200000000)
+#define LOCAL_REPORTING_MODE_MASK		6
 
 
 /**
@@ -328,7 +329,7 @@ int HWSensorBase::FlushData(bool need_report_event)
 	ALOGD("HWSensorBase::FlushData type=%d, flags=%lld", type, flags);
 
 	/* No flush events for One-shot sensors */
-	if (SENSOR_FLAG_ONE_SHOT_MODE == (flags & REPORTING_MODE_MASK))
+	if (SENSOR_FLAG_ONE_SHOT_MODE == (flags & LOCAL_REPORTING_MODE_MASK))
 		return -EINVAL;
 
 	if (GetStatus()) {
@@ -373,9 +374,9 @@ int HWSensorBase::FlushData(bool need_report_event)
 		 */
 		if (need_report_event && (report_at_once || ((type != SENSOR_TYPE_ACCELEROMETER) &&
 				(type != SENSOR_TYPE_GYROSCOPE))))
-			return SensorBase::FlushData(true);
-		else
-			return 0;
+			SensorBase::FlushData(true);
+
+		return 0;
 
 	} else
 		return -EINVAL;
@@ -507,7 +508,7 @@ int HWSensorBaseWithPollrate::SetDelay(int handle, int64_t period_ns, int64_t ti
 
 void HWSensorBaseWithPollrate::WriteDataToPipe()
 {
-	int err;
+	int err, retry = 3;
 	std::vector<int64_t>::iterator it;
 
 	if (!GetStatusOfHandle(sensor_t_data.handle))
@@ -530,16 +531,23 @@ void HWSensorBaseWithPollrate::WriteDataToPipe()
 				flush_event_data.type = SENSOR_TYPE_META_DATA;
 				flush_event_data.version = META_DATA_VERSION;
 
-				err = write(android_pipe_fd, &flush_event_data, sizeof(sensor_event));
+				while (retry) {
+					err = SensorBase::WritePipeWithPoll(&flush_event_data, sizeof(sensor_event),
+											POLL_TIMEOUT_FLUSH_EVENT);
+					if (err > 0)
+						break;
 
-				if (err < 0) {
-					ALOGE("%s: Writing flush_complete event failed, errno=%d", android_name, errno);
-					return;
+					retry--;
+					ALOGI("%s: Retry writing flush event data to pipe, retry_cnt: %d.", android_name, 3-retry);
 				}
+
+				if (retry ==  0)
+					ALOGE("%s: Failed to write HW flush_complete, err=%d", android_name, err);
+				else
+					ALOGD("write hw flush complete event to pipe succeed.");
 
 				last_timestamp = *it;
 				it = SensorBase::timestamp.erase(it);
-				ALOGD("write hw flush complete event to pipe succeed.");
 			} else
 				break;
 		}
@@ -547,9 +555,9 @@ void HWSensorBaseWithPollrate::WriteDataToPipe()
 
 	/* Scale the real_pollrate by 9/10 because LSM6DS3 ODR has +/-10% skew */
 	if (sensor_event.timestamp >= (last_data_timestamp + real_pollrate * 9 / 10)) {
-		err = write(android_pipe_fd, &sensor_event, sizeof(sensor_event));
-		if (err < 0) {
-			ALOGE("%s: Write sensor data failed, errno=%d", android_name, errno);
+		err =  SensorBase::WritePipeWithPoll(&sensor_event, sizeof(sensor_event), POLL_TIMEOUT_DATA_EVENT);
+		if (err <= 0) {
+			ALOGE("%s: Write sensor data failed.", android_name);
 			return;
 		}
 

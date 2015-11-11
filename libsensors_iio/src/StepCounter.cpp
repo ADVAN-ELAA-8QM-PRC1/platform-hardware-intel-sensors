@@ -26,7 +26,7 @@ StepCounter::StepCounter(HWSensorBaseCommonData *data, const char *name,
 		sensor_t_data.flags |= SENSOR_FLAG_WAKE_UP;
 
 	sensor_t_data.resolution = 1.0f;
-	sensor_t_data.maxRange = pow(2, data->channels[0].bits_used) - 1;
+	sensor_t_data.maxRange = pow(2.0, (double)data->channels[0].bits_used) - 1;
 
 	num_data_axis = SENSOR_BASE_1AXIS;
 }

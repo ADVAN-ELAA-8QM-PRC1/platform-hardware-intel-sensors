@@ -26,7 +26,7 @@ Pressure::Pressure(HWSensorBaseCommonData *data, const char *name,
 		sensor_t_data.flags |= SENSOR_FLAG_WAKE_UP;
 
 	sensor_t_data.resolution = data->channels[0].scale;
-	sensor_t_data.maxRange = sensor_t_data.resolution * (pow(2, data->channels[0].bits_used) - 1);
+	sensor_t_data.maxRange = sensor_t_data.resolution * (pow(2.0, (double)data->channels[0].bits_used) - 1);
 
 	num_data_axis = SENSOR_BASE_1AXIS;
 }

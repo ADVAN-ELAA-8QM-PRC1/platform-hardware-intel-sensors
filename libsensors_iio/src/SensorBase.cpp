@@ -11,10 +11,24 @@
 #include <assert.h>
 #include <string.h>
 #include <signal.h>
+#include <time.h>
 
 #include "SensorBase.h"
 
-#define ST_SENSOR_BASE_WAIT_US_BEFORE_SEND_FLUSH		(200000)
+int64_t get_monotonic_time(void)
+{
+	int err;
+	struct timespec tm;
+
+	err = clock_gettime(CLOCK_BOOTTIME, &tm);
+	if (err < 0) {
+		ALOGE("get_monotonic_time failed, err=%d", err);
+		return err;
+	}
+
+	ALOGD("get_monotonic_time %ld, %ld", tm.tv_sec, tm.tv_nsec);
+	return (int64_t) tm.tv_sec * 1000000000 + (int64_t) tm.tv_nsec;
+}
 
 SensorBase::SensorBase(const char *name, int handle, int type, int pipe_data_fd)
 {
@@ -355,7 +369,7 @@ bool SensorBase::FillSensor_tData(struct sensor_t *data)
 	return true;
 }
 
-int SensorBase::FlushData(int)
+int SensorBase::FlushData(bool)
 {
 	int err;
 	sensors_event_t flush_event_data;
@@ -373,6 +387,7 @@ int SensorBase::FlushData(int)
 		return err;
 	}
 
+	ALOGD("SensorBase::FlushData completed.");
 	return 0;
 }
 

@@ -313,11 +313,51 @@ restore_status_enable:
 	return err;
 }
 
-int HWSensorBase::FlushData(int base)
+int HWSensorBase::FlushData(bool need_report_event)
 {
-	int err;
+	bool report_at_once = false;
+	int err = -1;
+	int32_t type = SensorBase::sensor_t_data.type;
+#ifdef __LP64__
+       uint64_t flags;
+#else
+       uint32_t flags;
+#endif
+
+	flags = SensorBase::sensor_t_data.flags;
+	ALOGD("HWSensorBase::FlushData type=%d, flags=%lld", type, flags);
+
+	/* No flush events for One-shot sensors */
+	if (SENSOR_FLAG_ONE_SHOT_MODE == (flags & REPORTING_MODE_MASK))
+		return -EINVAL;
 
 	if (GetStatus()) {
+		/* Sensors used fifo would report flush complete event after data in fifo reported,
+		 * so we store the flush timestamp here. When we write fifo data to pipe,
+		 * we compare them. If the fifo data wrote done, then write the flush complete event.
+		 * One exception: if the flush call come after a fifo parse, there would no data
+		 * in the fifo. If we still sent flush complete event like before, that should wait for
+		 * another fifo parse, that would be a very long time (unit seconds). In this case,
+		 * we would sent the flush complete event here.
+		 */
+		if (need_report_event && ((type == SENSOR_TYPE_ACCELEROMETER) ||
+				(type == SENSOR_TYPE_GYROSCOPE))) {
+			int64_t flush_timestamp = get_monotonic_time();
+			if (flush_timestamp <= real_pollrate) {
+				ALOGE("HWSensorBase get flush base timestamp failed");
+				return err;
+			}
+			ALOGD("hw flush timestamp %lld", flush_timestamp);
+			/* Scale the real_pollrate by 11/10 because LSM6DS3 ODR has +/-10% skew */
+			if (flush_timestamp <= (last_data_timestamp + real_pollrate * 11 / 10))
+				report_at_once = true;
+			else {
+				flush_timestamp -= real_pollrate * 11 /10;
+				(SensorBase::timestamp).push_back(flush_timestamp);
+			}
+		}
+
+		/* Sensors used fifo would trigger read fifo here */
 		if (current_fifo_len > HW_SENSOR_BASE_DEFAULT_IIO_BUFFER_LEN) {
 			err = write_sysfs_int((char *)FILENAME_FLUSH, common_data.iio_sysfs_path, 1);
 			if (err < 0) {
@@ -326,13 +366,20 @@ int HWSensorBase::FlushData(int base)
 				return -EINVAL;
 			}
 		}
+
+		/* Sensors which not use fifo would sent a flush complete event here.
+		 * Sensors used fifo would sent a flush complete event here too if the fifo
+		 * is empty now.
+		 */
+		if (need_report_event && (report_at_once || ((type != SENSOR_TYPE_ACCELEROMETER) &&
+				(type != SENSOR_TYPE_GYROSCOPE))))
+			return SensorBase::FlushData(true);
+		else
+			return 0;
+
 	} else
 		return -EINVAL;
 
-	if (base)
-		return SensorBase::FlushData(0);
-	else
-		return 0;
 }
 
 void HWSensorBase::ThreadTask()
@@ -461,17 +508,53 @@ int HWSensorBaseWithPollrate::SetDelay(int handle, int64_t period_ns, int64_t ti
 void HWSensorBaseWithPollrate::WriteDataToPipe()
 {
 	int err;
+	std::vector<int64_t>::iterator it;
 
 	if (!GetStatusOfHandle(sensor_t_data.handle))
 		return;
 
-	if (sensor_event.timestamp >= (last_data_timestamp + real_pollrate)) {
+	if (!(SensorBase::timestamp.empty())) {
+		int64_t last_timestamp = 0;
+		for (it = SensorBase::timestamp.begin(); it != SensorBase::timestamp.end(); ) {
+			/* If two flush event come within 1 odr, there may not have data in hw fifo,
+			 * so report corresponding flush complete events here.
+			 */
+			if ((sensor_event.timestamp >= *it) ||
+					(last_timestamp != 0 && (*it - last_timestamp < real_pollrate * 11 / 10))) {
+				sensors_event_t flush_event_data;
+
+				flush_event_data.sensor = 0;
+				flush_event_data.timestamp = 0;
+				flush_event_data.meta_data.sensor = sensor_t_data.handle;
+				flush_event_data.meta_data.what = META_DATA_FLUSH_COMPLETE;
+				flush_event_data.type = SENSOR_TYPE_META_DATA;
+				flush_event_data.version = META_DATA_VERSION;
+
+				err = write(android_pipe_fd, &flush_event_data, sizeof(sensor_event));
+
+				if (err < 0) {
+					ALOGE("%s: Writing flush_complete event failed, errno=%d", android_name, errno);
+					return;
+				}
+
+				last_timestamp = *it;
+				it = SensorBase::timestamp.erase(it);
+				ALOGD("write hw flush complete event to pipe succeed.");
+			} else
+				break;
+		}
+	}
+
+	/* Scale the real_pollrate by 9/10 because LSM6DS3 ODR has +/-10% skew */
+	if (sensor_event.timestamp >= (last_data_timestamp + real_pollrate * 9 / 10)) {
 		err = write(android_pipe_fd, &sensor_event, sizeof(sensor_event));
 		if (err < 0) {
-			ALOGE("%s: Failed to write sensor data to pipe.", android_name);
+			ALOGE("%s: Write sensor data failed, errno=%d", android_name, errno);
 			return;
 		}
 
 		last_data_timestamp = sensor_event.timestamp;
-	}
+	} else
+		ALOGE("%s: Dropping event type=%d because ts %lld < %lld (%lld + %lld * 9 / 10)", android_name,
+					(last_data_timestamp + real_pollrate * 9 / 10), last_data_timestamp, real_pollrate);
 }

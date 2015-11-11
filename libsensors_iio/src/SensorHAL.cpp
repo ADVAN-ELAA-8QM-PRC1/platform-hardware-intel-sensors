@@ -439,7 +439,7 @@ static int st_hal_set_fullscale(char *iio_sysfs_path, int sensor_type,
 	}
 
 	for (i = 0; i < (int)sa->num_available; i++) {
-		if ((sa->values[i] * (pow(2, channels[0].bits_used - 1) - 1)) >= max_value)
+		if ((sa->values[i] * ((int)pow(2.0, channels[0].bits_used - 1.0) - 1)) >= max_value)
 			break;
 	}
 	if (i == (int)sa->num_available)
@@ -584,12 +584,9 @@ st_hal_load_free_iio_sysfs_path:
 static int st_hal_dev_flush(struct sensors_poll_device_1 *dev, int handle)
 {
 	STSensorHAL_data *hal_data = (STSensorHAL_data *)dev;
-	ALOGD("st_hal_dev_flush type=%u", ((struct sensor_t) hal_data->sensor_t_list[handle-1]).type);
-	/* One-shot sensor must return -EINVAL and not generate any flush complete metadata event */
-	if (SENSOR_TYPE_SIGNIFICANT_MOTION == ((struct sensor_t) hal_data->sensor_t_list[handle-1]).type)
-		return -EINVAL;
+	ALOGD("st_hal_dev_flush handle=%d", handle);
 
-	return hal_data->sensor_classes[handle]->FlushData(1);
+	return hal_data->sensor_classes[handle]->FlushData(true);
 }
 
 /**

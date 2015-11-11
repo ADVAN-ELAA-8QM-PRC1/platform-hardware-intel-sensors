@@ -42,7 +42,7 @@ public:
 	virtual ~SWSensorBase();
 
 	int AddSensorDependency(SensorBase *p);
-	virtual int FlushData(int base);
+	virtual int FlushData(bool need_report_event);
 	virtual void ThreadTask();
 };
 

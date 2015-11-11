@@ -24,6 +24,7 @@
 #include <time.h>
 #include <pthread.h>
 #include <errno.h>
+#include <vector>
 
 #include <hardware/sensors.h>
 #include <cutils/log.h>
@@ -121,6 +122,7 @@ public:
 	int GetType();
 	int GetMaxFifoLenght();
 
+	std::vector<int64_t> timestamp;
 	char* GetName();
 
 	virtual int Enable(int handle, bool enable);
@@ -140,7 +142,7 @@ public:
 
 	bool FillSensor_tData(struct sensor_t *data);
 
-	virtual int FlushData(int);
+	virtual int FlushData(bool);
 
 	virtual void ProcessData(SensorBaseData *data);
 	virtual void ProcessEvent(struct iio_event_data *event_data);
@@ -153,5 +155,7 @@ public:
 	static void *ThreadWork(void *context);
 	virtual void ThreadTask();
 };
+
+int64_t get_monotonic_time(void);
 
 #endif /* ST_SENSOR_BASE_H */

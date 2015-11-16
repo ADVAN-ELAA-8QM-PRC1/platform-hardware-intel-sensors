@@ -8,7 +8,11 @@
  */
 
 #include "CircularBuffer.h"
+
+#include <stdlib.h>
+#include <string.h>
 #include <cutils/log.h>
+
 CircularBuffer::CircularBuffer(unsigned int num_elements)
 {
 	data_sensor = (SensorBaseData *)malloc(num_elements * sizeof(SensorBaseData));

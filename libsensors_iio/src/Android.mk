@@ -35,7 +35,7 @@ LOCAL_MODULE_RELATIVE_PATH := hw
 
 LOCAL_MODULE_OWNER := STMicroelectronics
 
-LOCAL_C_INCLUDES := $(LOCAL_PATH)/ external/stlport/stlport bionic
+LOCAL_C_INCLUDES := $(LOCAL_PATH)/ bionic
 
 LOCAL_CFLAGS += -DLOG_TAG=\"SensorHAL\"
 
@@ -162,7 +162,7 @@ LOCAL_SRC_FILES += SWLinearAccel.cpp
 endif
 
 
-LOCAL_SHARED_LIBRARIES := liblog libcutils libutils libdl libc libstlport
+LOCAL_SHARED_LIBRARIES := liblog libcutils libutils libdl libc
 
 LOCAL_MODULE_TAGS := optional
 

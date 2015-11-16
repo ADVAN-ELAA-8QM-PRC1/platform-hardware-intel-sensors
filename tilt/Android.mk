@@ -28,6 +28,7 @@ VERSION_JB := $(shell test $(MAJOR_VERSION) -eq 4 -a $(MINOR_VERSION) -eq 2 && e
 VERSION_JB_MR2 := $(shell test $(MAJOR_VERSION) -eq 4 -a $(MINOR_VERSION) -eq 3 && echo true)
 VERSION_KK := $(shell test $(MAJOR_VERSION) -eq 4 -a $(MINOR_VERSION) -eq 4 && echo true)
 VERSION_L := $(shell test $(MAJOR_VERSION) -eq 5 && echo true)
+VERSION_M := $(shell test $(MAJOR_VERSION) -eq 6 && echo true)
 #ANDROID version check END
 
 LOCAL_MODULE := sensor_tilt.robby
@@ -37,7 +38,7 @@ LOCAL_MODULE_PATH := $(TARGET_OUT_SHARED_LIBRARIES)/hw
 
 LOCAL_MODULE_TAGS := optional
 # TODO: remove LOG_NDEBUG=0 for production builds, keep it during integration
-LOCAL_CFLAGS := -DLOG_TAG=\"TiltSensor\"
+LOCAL_CFLAGS := -DLOG_TAG=\"TiltSensor\" -DANDROID_VERSION=$(MAJOR_VERSION)
 
 ifeq ($(VERSION_JB),true)
 LOCAL_CFLAGS += -DANDROID_JB
@@ -65,7 +66,15 @@ LOCAL_CFLAGS += -DHAL_VERSION_GE_1_0
 LOCAL_CFLAGS += -DHAL_VERSION_GT_1_0
 endif
 
-#LOCAL_C_INCLUDES += hardware/invensense/libsensors_iio
+ifeq ($(VERSION_M),true)
+LOCAL_CFLAGS += -DANDROID_M
+#hal version is greater than and equal 1_0
+LOCAL_CFLAGS += -DHAL_VERSION_GE_1_0
+#hal version is greater than 1_0
+LOCAL_CFLAGS += -DHAL_VERSION_GT_1_0
+endif
+
+##LOCAL_C_INCLUDES += hardware/invensense/libsensors_iio
 LOCAL_SRC_FILES := \
     sensors.cpp \
     InputEventReader.cpp \

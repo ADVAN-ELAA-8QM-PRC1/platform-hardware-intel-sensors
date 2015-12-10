@@ -13,6 +13,8 @@
 # limitations under the License.
 #
 
+ifeq ($(USE_SENSOR_HAL_PREBUILTS),false)
+
 LOCAL_PATH := $(call my-dir)
 
 # HAL module implemenation, not prelinked, and stored in
@@ -84,3 +86,5 @@ LOCAL_SRC_FILES := \
 LOCAL_SHARED_LIBRARIES := liblog libutils libdl
 
 include $(BUILD_SHARED_LIBRARY)
+
+endif # USE_SENSOR_HAL_PREBUILTS

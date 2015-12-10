@@ -15,6 +15,8 @@
 # limitations under the License.
 #/
 
+ifeq ($(USE_SENSOR_HAL_PREBUILTS),false)
+
 ifneq ($(TARGET_SIMULATOR),true)
 
 LOCAL_PATH := $(call my-dir)
@@ -171,3 +173,5 @@ include $(BUILD_SHARED_LIBRARY)
 include $(call all-makefiles-under, $(LOCAL_PATH))
 
 endif # !TARGET_SIMULATOR
+
+endif # USE_SENSOR_HAL_PREBUILTS
